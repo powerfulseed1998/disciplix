@@ -5,7 +5,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FontAwesome6 } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { BottomSheetModal, BottomSheetView, BottomSheetBackdrop, BottomSheetBackdropProps } from '@gorhom/bottom-sheet';
-import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import Animated, { interpolate, useAnimatedStyle } from 'react-native-reanimated';
 import { useTranslation } from 'react-i18next';
 
@@ -25,7 +24,8 @@ export default function TodoScreen() {
     const { isDark } = useThemeContext();
     const { t } = useTranslation();
     const insets = useSafeAreaInsets();
-    const bottomTabBarHeight = useBottomTabBarHeight();
+    // Expo Router Tabs 可能不提供 bottom-tabs context，使用 fallback 计算
+    const bottomTabBarHeight = insets.bottom + 49;
     const {
         state, actions, refs, animations, listData,
         onSwipeStart, handleTaskDetail, handleToggleSortMenu,

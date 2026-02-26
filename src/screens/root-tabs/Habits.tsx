@@ -3,7 +3,6 @@ import { View, ScrollView, Text, TouchableOpacity, Alert, Keyboard } from 'react
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { FadeInDown, FadeOutDown, useSharedValue, useAnimatedStyle, interpolate, withSpring, withTiming } from 'react-native-reanimated';
 import { FontAwesome6 } from '@expo/vector-icons';
-import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { scheduleOnRN } from 'react-native-worklets';
 import { useTranslation } from 'react-i18next';
 import { useThemeContext } from '../../providers/ThemeProvider';
@@ -27,7 +26,8 @@ export default function HabitsScreen() {
     const { t } = useTranslation();
     const insets = useSafeAreaInsets();
     const { habits, toggleHabitToday, deleteHabits } = useHabitsStore();
-    const bottomTabBarHeight = useBottomTabBarHeight();
+    // Expo Router Tabs 可能不提供 bottom-tabs context，使用 fallback 计算
+    const bottomTabBarHeight = insets.bottom + 49;
 
     // Modal State
     const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
