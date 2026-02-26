@@ -1,17 +1,13 @@
-import { Text, View, StyleSheet } from "react-native";
+import { Redirect } from 'expo-router';
+import { usePreferencesStore } from '../store/usePreferencesStore';
 
 export default function Index() {
-  return (
-    <View style={styles.container}>
-      <Text>Edit src/app/index.tsx to edit this screen.</Text>
-    </View>
-  );
-}
+    const hasCompletedOnboarding = usePreferencesStore(
+        (state) => state.hasCompletedOnboarding,
+    );
+    const hydrated = usePreferencesStore((state) => state.hydrated);
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});
+    if (!hydrated) return null;
+    if (!hasCompletedOnboarding) return <Redirect href="/onboarding" />;
+    return <Redirect href="/(tabs)/habits" />;
+}
