@@ -19,7 +19,7 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.powerful_seed.disciplix"
+      "package": "com.junwei.powerfulplan"
     },
     "web": {
       "output": "static",
