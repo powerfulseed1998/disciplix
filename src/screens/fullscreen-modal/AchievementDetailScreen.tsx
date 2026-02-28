@@ -51,7 +51,8 @@ export default function AchievementDetailScreen() {
   const cardRef = useAnimatedRef<Animated.View>();
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
-  const scale = useSharedValue(1);
+  const scaleX = useSharedValue(1);
+  const scaleY = useSharedValue(1);
   const opacity = useSharedValue(0);
   const bgOpacity = useSharedValue(0);
   const contentOpacity = useSharedValue(0);
@@ -62,12 +63,15 @@ export default function AchievementDetailScreen() {
 
   const startX = useSharedValue(0);
   const startY = useSharedValue(0);
-  const startScale = useSharedValue(1);
+  const startScaleX = useSharedValue(1);
+  const startScaleY = useSharedValue(1);
   const isClosing = useSharedValue(false);
 
   const goBack = () => {
     setHiddenAchievementId(null);
-    router.back();
+    requestAnimationFrame(() => {
+      router.back();
+    });
   };
 
   const handleClose = useCallback(() => {
@@ -83,15 +87,14 @@ export default function AchievementDetailScreen() {
 
       translateX.value = withTiming(startX.value, { duration, easing });
       translateY.value = withTiming(startY.value, { duration, easing });
-      scale.value = withTiming(startScale.value, { duration, easing });
-
-      opacity.value = withDelay(200, withTiming(0, { duration: 80 }, (finished) => {
+      scaleX.value = withTiming(startScaleX.value, { duration, easing });
+      scaleY.value = withTiming(startScaleY.value, { duration, easing }, (finished) => {
         if (finished) {
           scheduleOnRN(goBack);
         }
-      }));
+      });
     });
-  }, [startX, startY, startScale, isClosing, bgOpacity, contentOpacity, opacity, translateX, translateY, scale, setHiddenAchievementId, goBack]);
+  }, [startX, startY, startScaleX, startScaleY, isClosing, bgOpacity, contentOpacity, translateX, translateY, scaleX, scaleY, goBack]);
 
   useEffect(() => {
     const onBackPress = () => {
@@ -118,35 +121,40 @@ export default function AchievementDetailScreen() {
         return;
       }
 
-      const uniformScale = originLayout.width / target.width;
+      const sxVal = originLayout.width / target.width;
+      const syVal = originLayout.height / target.height;
 
-      const initialTranslateX = originLayout.x - target.pageX + (target.width * (uniformScale - 1)) / 2;
-      const initialTranslateY = originLayout.y - target.pageY + (target.height * (uniformScale - 1)) / 2;
+      const initialTranslateX = originLayout.x - target.pageX + (target.width * (sxVal - 1)) / 2;
+      const initialTranslateY = originLayout.y - target.pageY + (target.height * (syVal - 1)) / 2;
 
       startX.value = initialTranslateX;
       startY.value = initialTranslateY;
-      startScale.value = uniformScale;
+      startScaleX.value = sxVal;
+      startScaleY.value = syVal;
 
       translateX.value = initialTranslateX;
       translateY.value = initialTranslateY;
-      scale.value = uniformScale;
+      scaleX.value = sxVal;
+      scaleY.value = syVal;
       opacity.value = 1;
 
       const springConfig = { damping: 22, stiffness: 220, mass: 1 };
       translateX.value = withSpring(0, springConfig);
       translateY.value = withSpring(0, springConfig);
-      scale.value = withSpring(1, springConfig);
+      scaleX.value = withSpring(1, springConfig);
+      scaleY.value = withSpring(1, springConfig);
 
       contentOpacity.value = withDelay(180, withTiming(1, { duration: 220 }));
     });
-  }, [originLayout, cardRef, translateX, translateY, scale, opacity, contentOpacity, startX, startY, startScale]);
+  }, [originLayout, cardRef, translateX, translateY, scaleX, scaleY, opacity, contentOpacity, startX, startY, startScaleX, startScaleY]);
 
   const containerAnimatedStyle = useAnimatedStyle(() => ({
     opacity: opacity.value,
     transform: [
       { translateX: translateX.value },
       { translateY: translateY.value },
-      { scale: scale.value },
+      { scaleX: scaleX.value },
+      { scaleY: scaleY.value },
     ],
   }));
 
