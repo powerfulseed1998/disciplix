@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "disciplix",
-    "slug": "disciplix",
+    "name": "Disciplix",
+    "slug": "Disciplix",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -43,8 +43,9 @@
       "reactCompiler": true
     },
     "extra": {
+      "router": {},
       "eas": {
-        "projectId": "4469e504-8116-4f85-b44f-09333a8f7ddd"
+        "projectId": "42e29caa-4f74-4e4d-826a-ced9ba90acf6"
       }
     }
   }
