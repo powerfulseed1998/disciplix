@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
+import * as Notifications from 'expo-notifications';
 import AchievementUnlockAnimation from '../components/achievements/AchievementUnlockAnimation';
 import GlobalModal from '../components/common/GlobalModal';
 import LoadingIndicator from '../components/common/LoadingIndicator';
@@ -20,6 +21,14 @@ import { usePreferencesStore } from '../store/usePreferencesStore';
 import { calculateActiveHabitsCount, checkAllAchievements } from '../utils/achievement-helpers';
 
 SplashScreen.preventAutoHideAsync();
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
 
 function AppContent() {
   const { resolvedTheme } = useThemeContext();

@@ -109,6 +109,7 @@ export default {
         selectDate: '选择日期',
         status: '状态: {{status}}',
         setSystemAlarm: '设置系统闹钟',
+        setReminder: '设置提醒',
         custom: '自定义',
          whatToDone: '要做什么？',
         optional: '(可选)',

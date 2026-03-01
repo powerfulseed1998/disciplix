@@ -109,6 +109,7 @@ export default {
         selectDate: 'Select Date',
         status: 'Status: {{status}}',
         setSystemAlarm: 'Set System Alarm',
+        setReminder: 'Set Reminder',
         custom: 'Custom',
         whatToDone: 'What needs to be done?',
         optional: '(optional)',

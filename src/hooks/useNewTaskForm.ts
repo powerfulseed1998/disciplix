@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
-import { Platform, Alert } from 'react-native';
-import * as IntentLauncher from 'expo-intent-launcher';
+import { Alert, Platform } from 'react-native';
+import * as Notifications from 'expo-notifications';
+import { useTranslation } from 'react-i18next';
 import { useCategoriesStore } from '../store/useCategoriesStore';
 import { useTasksStore } from '../store/useTasksStore';
 
@@ -10,6 +11,7 @@ type UseNewTaskFormParams = {
 };
 
 export function useNewTaskForm({ isVisible, onClose }: UseNewTaskFormParams) {
+    const { t } = useTranslation();
     const addTask = useTasksStore(state => state.addTask);
     const categories = useCategoriesStore(state => state.categories);
     const [taskTime, setTaskTime] = useState(new Date());
@@ -33,11 +35,45 @@ export function useNewTaskForm({ isVisible, onClose }: UseNewTaskFormParams) {
         }
     }, [isVisible]);
 
+    async function requestPermissions() {
+        const { status: existingStatus, granted: existingGranted } = await Notifications.getPermissionsAsync();
+        if (existingGranted) return true;
+        
+        const { status, granted } = await Notifications.requestPermissionsAsync();
+        
+        if (Platform.OS === 'android') {
+            await Notifications.setNotificationChannelAsync('default', {
+                name: 'default',
+                importance: Notifications.AndroidImportance.MAX,
+                vibrationPattern: [0, 250, 250, 250],
+                lightColor: '#8b5cf6',
+            });
+        }
+        
+        return granted || status === 'granted' || status === 'provisional';
+    }
+
+    useEffect(() => {
+        if (addToAlarm) {
+            const checkPermission = async () => {
+                const granted = await requestPermissions();
+                if (!granted) {
+                    setAddToAlarm(false);
+                    Alert.alert(
+                        t('settings.notifications.permissionDenied'),
+                        t('settings.notifications.permissionDeniedDesc')
+                    );
+                }
+            };
+            checkPermission();
+        }
+    }, [addToAlarm]);
+
     async function handleCreateTask() {
         if (!taskTitle.trim()) return;
 
         const selectedCategoryObj = categories.find(c => c.id === selectedCategory);
-        let finalTime = taskTime;
+        let finalTime = new Date(taskTime);
 
         if (!isTimeModified.current) {
             const now = new Date();
@@ -51,8 +87,10 @@ export function useNewTaskForm({ isVisible, onClose }: UseNewTaskFormParams) {
             }
         }
 
+        const taskId = Date.now().toString();
+
         addTask({
-            id: Date.now().toString(),
+            id: taskId,
             title: taskTitle.trim(),
             description: taskDescription.trim(),
             completed: false,
@@ -61,19 +99,38 @@ export function useNewTaskForm({ isVisible, onClose }: UseNewTaskFormParams) {
             isAllDay: isAllDay,
         });
 
-        if (Platform.OS === 'android' && addToAlarm && !isAllDay) {
-            try {
-                await IntentLauncher.startActivityAsync('android.intent.action.SET_ALARM', {
-                    extra: {
-                        'android.intent.extra.alarm.MESSAGE': taskTitle.trim(),
-                        'android.intent.extra.alarm.HOUR': finalTime.getHours(),
-                        'android.intent.extra.alarm.MINUTES': finalTime.getMinutes(),
-                        'android.intent.extra.alarm.SKIP_UI': true,
-                    },
-                });
-            } catch (err) {
-                console.error('Failed to set alarm:', err);
-                Alert.alert('Error', 'Could not set system alarm.');
+        if (addToAlarm && !isAllDay) {
+            const hasPermission = await requestPermissions();
+            if (hasPermission) {
+                try {
+                    const now = new Date();
+                    // If the time is in the past or very soon (next 10 seconds), schedule it 10 seconds from now
+                    if (finalTime.getTime() <= now.getTime() + 10000) {
+                        finalTime = new Date(now.getTime() + 10000);
+                    }
+                    
+                    await Notifications.scheduleNotificationAsync({
+                        content: {
+                            title: taskTitle.trim(),
+                            body: taskDescription.trim() || t('todo.taskDetails'),
+                            sound: true,
+                            data: { taskId },
+                        },
+                        trigger: {
+                            type: Notifications.SchedulableTriggerInputTypes.DATE,
+                            date: finalTime,
+                            ...(Platform.OS === 'android' ? { channelId: 'default' } : {})
+                        },
+                    });
+                } catch (err: any) {
+                    console.error('Failed to schedule notification:', err);
+                    Alert.alert('Error', `Could not schedule notification: ${err.message}`);
+                }
+            } else {
+                Alert.alert(
+                    t('settings.notifications.permissionDenied'),
+                    t('settings.notifications.permissionDeniedDesc')
+                );
             }
         }
 
