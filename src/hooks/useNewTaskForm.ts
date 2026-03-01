@@ -50,7 +50,7 @@ export function useNewTaskForm({ isVisible, onClose }: UseNewTaskFormParams) {
             });
         }
         
-        return granted || status === 'granted' || status === 'provisional';
+        return granted;
     }
 
     useEffect(() => {
